@@ -26,6 +26,15 @@ public class FloorQueue {
         return queue.remove(selectFair());
     }
 
+    public synchronized Passenger peekFair() {
+        if (queue.isEmpty()) return null;
+        return queue.get(selectFair());
+    }
+
+    public synchronized boolean remove(Passenger p) {
+        return queue.remove(p);
+    }
+
     public synchronized int size() {
         return queue.size();
     }
@@ -44,11 +53,11 @@ public class FloorQueue {
                 continue;
             }
 
-            if (p.getTask().getPriority() > curr.getTask().getPriority()) {
+            if (p.getTask().getPriority().getValue() > curr.getTask().getPriority().getValue()) {
                 best = i;
                 continue;
             }
-            if (p.getTask().getPriority() < curr.getTask().getPriority()) {
+            if (p.getTask().getPriority().getValue() < curr.getTask().getPriority().getValue()) {
                 continue;
             }
 

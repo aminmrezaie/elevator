@@ -3,16 +3,18 @@ package simulation;
 import building.Building;
 import passenger.Passenger;
 import passenger.PassengerRole;
+import task.Task;
 
 import java.util.Random;
 
 public class Simulation {
 
+    private static Simulation instance;
     private final Config   cfg;
     private final Building building;
     private final Random   rng = new Random();
 
-    public Simulation(Config cfg) {
+    private Simulation(Config cfg) {
         this.cfg = cfg;
         int total = cfg.numStudents + cfg.numProfessors + cfg.numStaff + cfg.numPorters;
         this.building = new Building(
@@ -27,6 +29,16 @@ public class Simulation {
                 cfg.elevatorSpeedMs,
                 total
         );
+    }
+
+    public static synchronized void init(Config cfg) {
+        if (instance == null) {
+            instance = new Simulation(cfg);
+        }
+    }
+
+    public static Simulation getInstance() {
+        return instance;
     }
 
     public void run() throws InterruptedException {
@@ -59,16 +71,13 @@ public class Simulation {
             double weight = minW   + rng.nextDouble() * (maxW - minW);
             double cargo  = maxCargo > 0 ? rng.nextDouble() * maxCargo : 0;
 
-            int priority;
-            switch (role) {
-                case PROFESSOR: priority = 5;                    break;
-                case STAFF:     priority = 4;                    break;
-                case STUDENT:   priority = rng.nextInt(3) + 1;  break;
-                case PORTER:    priority = 2;                    break;
-                default:        priority = 1;                    break;
-            }
+            Task.Priority priority;
+            int randPriority = rng.nextInt(3);
+            if (randPriority == 0) priority = Task.Priority.LOW;
+            else if (randPriority == 1) priority = Task.Priority.MEDIUM;
+            else priority = Task.Priority.HIGH;
 
-            Passenger p = new Passenger(role, src, dst, age, weight, cargo, priority);
+            Passenger p = new Passenger(role, src, dst, age, weight, cargo, priority, building);
             building.addPassenger(p);
             Thread.sleep(10);
         }

@@ -9,6 +9,7 @@ public class Task {
         IN_PROGRESS,
         DONE
     }
+
     public enum Priority {
         LOW(1),
         MEDIUM(2),
@@ -27,11 +28,11 @@ public class Task {
     private static final AtomicLong counter = new AtomicLong(0);
 
     private final long id;
-    private final int priority;
+    private final Priority priority;
     private volatile Status status;
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    public Task(int priority) {
+    public Task(Priority priority) {
         this.id = counter.incrementAndGet();
         this.priority = priority;
         this.status = Status.PENDING;
@@ -44,7 +45,7 @@ public class Task {
     public void complete() {
         this.status = Status.DONE;
         latch.countDown();
-        System.out.printf("[تسک #%d]  تسک با اولویت %d تکمیل شد%n", id, priority);
+        System.out.printf("[تسک #%d]  تسک با اولویت %s تکمیل شد%n", id, priority);
     }
 
     public void await() throws InterruptedException {
@@ -55,7 +56,7 @@ public class Task {
         return id;
     }
 
-    public int getPriority() {
+    public Priority getPriority() {
         return priority;
     }
 

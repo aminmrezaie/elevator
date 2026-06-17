@@ -1,15 +1,35 @@
 import simulation.Config;
 import simulation.Simulation;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         System.out.println("=== شبیه‌سازی آسانسورهای دانشگاه صنعتی شریف ===");
         System.out.println();
 
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("لطفا تعداد طبقات ساختمان (M) را وارد کنید: ");
+        int m = scanner.nextInt();
+
+        System.out.print("لطفا تعداد کل آسانسورها (N) را وارد کنید: ");
+        int n = scanner.nextInt();
+
         Config cfg = new Config();
-        new Simulation(cfg).run();
+        cfg.numFloors = m;
+
+        // Distribute elevators roughly (at least 1 of each if N >= 3)
+        if (n >= 3) {
+            cfg.numGeneralElevators = n - 2;
+            cfg.numFacultyElevators = 1;
+            cfg.numFreightElevators = 1;
+        } else {
+            cfg.numGeneralElevators = n;
+            cfg.numFacultyElevators = 0;
+            cfg.numFreightElevators = 0;
+        }
+
+        Simulation.init(cfg);
+        Simulation.getInstance().run();
     }
 }
-
