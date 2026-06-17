@@ -47,7 +47,7 @@ public class Elevator implements Runnable {
 
     @Override
     public void run() {
-        System.out.printf("[آسانسور %d - %s] 🚀 شروع به کار کرد%n", id, type.getLabel());
+        System.out.printf("[آسانسور %d - %s]  شروع به کار کرد%n", id, type.getLabel());
         while (!stopped.get() || hasWaitingPassengers()) {
             Passenger p = pickPassenger();
             if (p == null) {
@@ -61,24 +61,29 @@ public class Elevator implements Runnable {
             }
             servePassenger(p);
         }
-        System.out.printf("[آسانسور %d - %s] 🛑 خاموش شد%n", id, type.getLabel());
+        System.out.printf("[آسانسور %d - %s]  خاموش شد%n", id, type.getLabel());
     }
+
     public void markRepaired() {
         synchronized (repairMonitor) {
             broken = false;
             if (repairedLatch != null) repairedLatch.countDown();
-            System.out.printf("[آسانسور %d - %s] ✅ تعمیر شد در طبقه %d%n",
+            System.out.printf("[آسانسور %d - %s]  تعمیر شد در طبقه %d%n",
                     id, type.getLabel(), currentFloor.get());
         }
     }
+
     private boolean moveTo(int dst) {
         int src = currentFloor.get();
         if (src == dst) return true;
         int dir = dst > src ? 1 : -1;
 
         for (int f = src; f != dst; f += dir) {
-            try { Thread.sleep(speedMs); } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); return false;
+            try {
+                Thread.sleep(speedMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
             }
             currentFloor.set(f + dir);
 
@@ -88,11 +93,14 @@ public class Elevator implements Runnable {
                     repairedLatch = new CountDownLatch(1);
                 }
                 int brokenAt = currentFloor.get();
-                System.out.printf("[آسانسور %d - %s] ⚠️  خراب شد در طبقه %d%n",
+                System.out.printf("[آسانسور %d - %s]   خراب شد در طبقه %d%n",
                         id, type.getLabel(), brokenAt);
                 repairQueue.add(new RepairRequest(id, brokenAt));
-                try { repairedLatch.await(); } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt(); return false;
+                try {
+                    repairedLatch.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return false;
                 }
                 return false;
             }
@@ -107,13 +115,13 @@ public class Elevator implements Runnable {
 
     private void servePassenger(Passenger p) {
         if (!canCarry(p)) {
-            System.out.printf("[آسانسور %d] ⚖️  ظرفیت کافی نیست برای %s — برگشت به صف%n", id, p.getName());
+            System.out.printf("[آسانسور %d]   ظرفیت کافی نیست برای %s — برگشت به صف%n", id, p.getName());
             floors.get(p.getSrcFloor()).enqueueFor(id, p);
             return;
         }
 
         if (currentFloor.get() != p.getSrcFloor()) {
-            System.out.printf("[آسانسور %d - %s] 🔽 حرکت به طبقه %d برای %s%n",
+            System.out.printf("[آسانسور %d - %s]  حرکت به طبقه %d برای %s%n",
                     id, type.getLabel(), p.getSrcFloor(), p.getName());
             if (!moveTo(p.getSrcFloor())) {
                 floors.get(p.getSrcFloor()).enqueueFor(id, p);
@@ -123,15 +131,14 @@ public class Elevator implements Runnable {
 
         addWeight(p.totalWeight());
         p.getTask().start();
-        System.out.printf("[آسانسور %d - %s] 🚶 %s سوار شد (طبقه %d → %d)%n",
+        System.out.printf("[آسانسور %d - %s]  %s سوار شد (طبقه %d → %d)%n",
                 id, type.getLabel(), p.getName(), p.getSrcFloor(), p.getDstFloor());
 
         if (!moveTo(p.getDstFloor())) {
             int stuckAt = currentFloor.get();
             removeWeight(p.totalWeight());
-            System.out.printf("[آسانسور %d] 🔴 %s پیاده شد در طبقه %d (خرابی)%n", id, p.getName(), stuckAt);
+            System.out.printf("[آسانسور %d]  %s پیاده شد در طبقه %d (خرابی)%n", id, p.getName(), stuckAt);
             p.setCurrentFloor(stuckAt);
-            // مسافر از طبقه فعلی مبدأ جدید دارد — در صف همان طبقه می‌ماند
             floors.get(stuckAt).enqueueFor(id, p);
             return;
         }
@@ -139,26 +146,35 @@ public class Elevator implements Runnable {
         removeWeight(p.totalWeight());
         p.setCurrentFloor(p.getDstFloor());
         p.getTask().complete();
-        System.out.printf("[آسانسور %d - %s] 🏁 %s به طبقه %d رسید%n",
+        System.out.printf("[آسانسور %d - %s]  %s به طبقه %d رسید%n",
                 id, type.getLabel(), p.getName(), p.getDstFloor());
     }
 
     private boolean canCarry(Passenger p) {
         weightLock.lock();
-        try { return currentWeight + p.totalWeight() <= maxWeight; }
-        finally { weightLock.unlock(); }
+        try {
+            return currentWeight + p.totalWeight() <= maxWeight;
+        } finally {
+            weightLock.unlock();
+        }
     }
 
     private void addWeight(double w) {
         weightLock.lock();
-        try { currentWeight += w; }
-        finally { weightLock.unlock(); }
+        try {
+            currentWeight += w;
+        } finally {
+            weightLock.unlock();
+        }
     }
 
     private void removeWeight(double w) {
         weightLock.lock();
-        try { currentWeight = Math.max(0, currentWeight - w); }
-        finally { weightLock.unlock(); }
+        try {
+            currentWeight = Math.max(0, currentWeight - w);
+        } finally {
+            weightLock.unlock();
+        }
     }
 
     private boolean hasWaitingPassengers() {
@@ -169,7 +185,12 @@ public class Elevator implements Runnable {
         return false;
     }
 
-    public long getId()           { return id; }
-    public ElevatorType getType() { return type; }
+    public long getId() {
+        return id;
+    }
+
+    public ElevatorType getType() {
+        return type;
+    }
 
 }

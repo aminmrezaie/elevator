@@ -1,7 +1,7 @@
 package simulation;
 
 public class Config {
-    public int    numFloors            = 8;
+    public int    numFloors            = 10;
     public int    numGeneralElevators  = 2;
     public int    numFacultyElevators  = 1;
     public int    numFreightElevators  = 1;
